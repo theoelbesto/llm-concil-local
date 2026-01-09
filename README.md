@@ -11,6 +11,7 @@ Local, distributed multi-LLM system with Council agents, anonymized peer review,
 - Python 3.10+
 - Ollama installed and running on each machine
 - Models pulled locally on each machine
+- For a group of 4: 3 council agents on three separate PCs + 1 chairman on a dedicated PC
 
 ## Setup
 1) Create a virtual environment per service (recommended).
@@ -60,16 +61,42 @@ uvicorn chairman_service.app:app --host 0.0.0.0 --port 8002
 ```bash
 export COUNCIL_ENDPOINTS=http://10.0.0.2:8001,http://10.0.0.3:8001,http://10.0.0.4:8001
 export CHAIR_ENDPOINT=http://10.0.0.10:8002
+export MIN_AGENTS=3
+export MIN_COUNCIL_HOSTS=3
+export ALLOW_CHAIR_SAME_HOST=false
 
 uvicorn orchestrator.app:app --host 0.0.0.0 --port 8000
 ```
 
+## Group of 4 Deployment Map
+- PC1: council-a (`http://10.0.0.2:8001`)
+- PC2: council-b (`http://10.0.0.3:8001`)
+- PC3: council-c (`http://10.0.0.4:8001`)
+- PC4: chairman (`http://10.0.0.10:8002`)
+
+## Quick Local Launch (single machine)
+For development only (not compliant with group-of-4 distributed requirement):
+```bash
+bash scripts/run_local.sh
+```
+
+## Solo Mode (optional)
+If you must run everything on one PC, set:
+```bash
+export MIN_AGENTS=1
+export MIN_COUNCIL_HOSTS=1
+export ALLOW_CHAIR_SAME_HOST=true
+```
+
+## Inspect Outputs (UI)
+Open `http://ORCH_IP:8000/` to run a query and inspect Stage 1/2/3 results in tabs.
+
 ## Test the Pipeline
 
 ```bash
-curl -X POST http://localhost:8000/run \
+curl -X POST http://ORCH_IP:8000/run \
   -H "Content-Type: application/json" \
-  -d '{"query": "Explain overfitting in machine learning."}'
+  -d '{"query":"Explain the difference between supervised and unsupervised learning."}'
 ```
 
 The orchestrator returns JSON with:
